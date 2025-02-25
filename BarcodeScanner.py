@@ -115,4 +115,3 @@ else:
     # Release resources
     cap.release()
     cv2.destroyAllWindows()
-    print(f"Processing completed. Total items scanned: {barcode_count}")
