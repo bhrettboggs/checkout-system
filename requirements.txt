@@ -1,15 +1,6 @@
-<<<<<<< HEAD
+
 opencv-python
 pyzbar
 numpy
 pandas
 flask
-
-=======
-opencv-python
-pyzbar
-numpy
-pandas
-flask
-
->>>>>>> dfda69552043d21ef1c325d4fc1347e275f1503d
