@@ -1,117 +1,111 @@
+# scanner.py
+
 import cv2
 import numpy as np
 from pyzbar.pyzbar import decode, ZBarSymbol
-import os
 import random
+import subprocess
+import os
 
-# Define barcode/QR code detection function
-def process_frame(frame):
-    detected = False
-    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    blurred_frame = cv2.GaussianBlur(gray_frame, (5, 5), 0)
-    global decoded_text
-    # Detect barcodes and QR codes
+def process_frame(frame): # Process the frame and detect barcodes
+    detected = False # Flag to indicate if a barcode was detected
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # Convert to grayscale
+    blurred_frame = cv2.GaussianBlur(gray_frame, (5, 5), 0) # Apply Gaussian blur
+
+    # Decode barcodes
     decoded_objects = decode(
         blurred_frame, 
-        symbols=[ZBarSymbol.QRCODE, ZBarSymbol.EAN13, ZBarSymbol.UPCA, ZBarSymbol.CODE128]
+        symbols=[ZBarSymbol.QRCODE, ZBarSymbol.EAN13, ZBarSymbol.UPCA, ZBarSymbol.CODE128] # Supported barcode types
     )
 
-    decoded_text = None
-    global offset 
-    offset = 0
-    for obj in decoded_objects:
-        detected = True  # Barcode detected
-        offset += 1
+    global decoded_text # Global variable to store the decoded barcode text
+    decoded_text = None # Initialize to None
+    for obj in decoded_objects: # Iterate through detected objects
+        # Set flag to True if a barcode is detected
+        detected = True
 
-        
-        # Draw bounding box around detected barcode
+        # Draw bounding box
         points = obj.polygon
-        if len(points) == 4:
-            pts = np.array(points, dtype=np.int32)
-            pts = pts.reshape((-1, 1, 2))
-            cv2.polylines(frame, [pts], isClosed=True, color=(0, 255, 0), thickness=2)
+        if len(points) == 4: # If the barcode is rectangular
+            pts = np.array(points, dtype=np.int32).reshape((-1, 1, 2)) # Reshape points
+            cv2.polylines(frame, [pts], isClosed=True, color=(0, 255, 0), thickness=2) # Draw bounding box
 
-        # Draw decoded text above the barcode
+        # Decode barcode text
         decoded_text = obj.data.decode('utf-8')
-        x, y, w, h = obj.rect
+        x, y, w, h = obj.rect # Get bounding box coordinates
         cv2.putText(frame, f"{obj.type}: {decoded_text}", (x, y - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        # print(f"Decoded {obj.type}: {decoded_text}")
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)  # Display barcode text
 
+    return frame, detected # Return processed frame and detected flag
 
-    return frame, detected
+# Start program
+barcode_count = 0 # Initialize barcode count
+choice = input("Welcome! Enter 1 if you are a rewards member, or 0 to continue as a guest: ")
 
-# Ask user to select source
-barcode_count = 0
-choice = input("Welcome, Enter 1 if you are a rewards member, else enter 0: ")
-with open("Rewards.txt", "a+") as outfile:
-    outfile.seek(0)
-    existing_ids = {line.split(',')[0] for line in outfile.readlines()}
+with open("GroupProject/Rewards.txt", "a+") as outfile: # Open rewards file
+    outfile.seek(0) # Move cursor to beginning of file
+    existing_ids = {line.strip().split(',')[0] for line in outfile.readlines()} # Get existing member IDs
 
-
-
-# Initialize the video source
-    if choice == '0':
-        member_signup = input("Would you like to sign up to become a member? (yes/no) ").lower()
+    if choice == '0': # Guest
+        member_signup = input("Would you like to sign up to become a member? (yes/no): ").lower()
         if member_signup == "yes":
-
             member_ID = str(random.randint(10000, 99999))
             while member_ID in existing_ids:
                 member_ID = str(random.randint(10000, 99999))
-        
+
             print(f'Your new member ID is: {member_ID}')
-        
             outfile.write(f'{member_ID},0\n')
         else:
-            print("continuing as guest")
+            print("Continuing as guest.")
 
-        cap = cv2.VideoCapture(0)  # Use the default camera
-    elif choice == '1':
-        Member_ID = input("Enter Member ID")
-        if Member_ID not in existing_ids:
-            print("Invalid ID")
+        cap = cv2.VideoCapture(0) # Open camera
+
+    elif choice == '1': # Rewards member
+        Member_ID = input("Enter Member ID: ")
+        if Member_ID not in existing_ids: # Check if member ID is valid
+            print("Invalid ID.")
             exit()
-        cap = cv2.VideoCapture(0)
+        print(f"Welcome back, Member {Member_ID}!") # Display welcome message
+        cap = cv2.VideoCapture(0) # Open camera
     else:
-        print("Invalid input. Exiting the program.")
+        print("Invalid input. Exiting.")
         exit()
 
+if not cap.isOpened(): # Check if camera is opened
+    print("Error: Could not open the camera.")
+    exit()
 
-if not cap.isOpened():
-    print("Error: Could not open the camera or video file.")
-else:
-    frame_idx = 0  # Frame index for saving
-    barcode_detected_count = 0
+barcode_detected_count = 0 # Initialize barcode detected count
+decoded_text = None # Initialize decoded text
 
-    outfile_1 = open("Items.txt", "w")  # List to store detected barcode data
-    readfile_1 = open("Items.txt", "r")
+outfile_1 = open("Items.txt", "w") # Open items file
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break  # End of video or camera feed interrupted
+while True: # Main loop
+    ret, frame = cap.read() # Read frame
+    if not ret: # Check if frame is read
+        print("Error: Could not read") 
+        break
 
-        # Process frame for barcode detection
-        processed_frame, detected = process_frame(frame)
+    processed_frame, detected = process_frame(frame) # Process frame and detect barcodes
 
-        # Save frames with detected barcodes
-        if detected:
-            barcode_detected_count += 1
-            if barcode_detected_count % 25 == 0:
-                outfile_1.write(f'{decoded_text}\n')
-                barcode_count +=1
-            
-                print(f"Item scanned: {decoded_text} Total Items: {barcode_count}")
-            
+    if detected: # If barcode is detected
+        barcode_detected_count += 1 # Increment barcode detected count
+        if barcode_detected_count % 1 == 0:  # Save every detected barcode
+            outfile_1.write(f'{decoded_text}\n') # Write barcode to file
+            barcode_count += 1 # Increment barcode count
+            print(f"Item scanned: {decoded_text} | Total Items: {barcode_count}") # Display scanned barcode
 
-        # Display the frame (for camera feed)
-        if choice in ('0', '1'):
-            cv2.imshow('Live Barcode Scanner', processed_frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+    cv2.imshow('Live Barcode Scanner', processed_frame) # Display processed frame
+    if cv2.waitKey(1) & 0xFF == ord('q'): # Exit on 'q' key press
+        break
 
-        frame_idx += 1
+cap.release() # Release camera
+cv2.destroyAllWindows() # Close windows
+outfile_1.close() # Close items file
 
-    # Release resources
-    cap.release()
-    cv2.destroyAllWindows()
+print(f"Scanning complete! {barcode_count} item(s) scanned.") # Display total items scanned
+print("Starting checkout system...") # Display checkout system message
+
+# Compile and run the Java checkout system
+subprocess.run(["javac", "GroupProject/CheckoutSystem.java"])
+subprocess.run(["java", "GroupProject.CheckoutSystem"])
