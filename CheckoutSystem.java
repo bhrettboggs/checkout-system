@@ -158,7 +158,7 @@ public class CheckoutSystem {
             System.out.printf("New total after rewards: $%.2f\n", total);
 
         }    
-        else{ // Award new points (5% of total)
+        else if (apply.equals("no")){ // Award new points (5% of total)
             int newPoints = (int)(total * 0.05);
             rewardsMap.put(memberId, newPoints);
             System.out.println("You now have " + newPoints + " new points!");
