@@ -3,83 +3,106 @@ package GroupProject;
 import java.io.*;
 import java.util.*;
 
+
 public class CheckoutSystem {
 
     static HashMap<String, Integer> rewardsMap = new HashMap<>();
     static ArrayList<Product> cart = new ArrayList<>();
-    static LinkedList<Product> inventory = HardCode.initialize(); // Load products into inventory
+    static LinkedList<Product> inventory = new LinkedList<>();
+
+    //static LinkedList<Product> inventory = HardCode.initialize(); // Load products into inventory
     static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws IOException {
+        System.out.println("Program started");
+
         loadRewards();
         loadCart();
         displayCart();
 
         manageCart();
         redeemRewards();
+        checkout();
         printReceipt();
 
-        updateRewards();
+        
     }
 
     // Loads Rewards.txt into rewardsMap
     static void loadRewards() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("GroupProject/Rewards.txt"));
-        String line;
-        while ((line = br.readLine()) != null) {
-            String[] parts = line.split(",");
-            if (parts.length >= 2) {
-                rewardsMap.put(parts[0], Integer.parseInt(parts[1]));
+        try (BufferedReader br = new BufferedReader(new FileReader("GroupProject/Rewards.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 2) {
+                    rewardsMap.put(parts[0].trim(), Integer.valueOf(parts[1].trim()));
+                }
             }
+        }catch (IOException e) {
+            System.out.println("Error loading rewards: " + e.getMessage());
         }
-        br.close();
+        System.out.println("Rewards loaded successfully.");
     }
 
     // Loads Items.txt and searches products by name (or id if your barcode scanner saves ids)
     static void loadCart() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("Items.txt"));
-        String line;
-        while ((line = br.readLine()) != null) {
-            String scannedItem = line.trim();
+        inventory = HardCode.initialize();
 
-            // Search inventory for the scanned item
-            Product product = searchInventory(scannedItem);
-
-            if (product != null) {
-                cart.add(product);
-            } else {
-                System.out.println("Scanned item not found in inventory: " + scannedItem);
+        System.out.println("Loading cart...");
+        try (BufferedReader br = new BufferedReader(new FileReader("GroupProject/Items.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+    
+                try {
+                    int scannedId = Integer.parseInt(line); // Read ID as int
+    
+                    // Search inventory using product ID
+                    Product product = searchInventory(scannedId);
+    
+                    if (product != null) {
+                        cart.add(product);
+                    } else {
+                        System.out.println("Scanned item not found in inventory: " + scannedId);
+                    }
+    
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid ID format in Items.txt: " + line);
+                }
             }
+        }catch (IOException e) {
+            System.out.println("Error loading cart: " + e.getMessage());
         }
-        br.close();
-
+        System.out.println("Cart loaded successfully.");
+    
         if (cart.isEmpty()) {
             System.out.println("No valid items in cart. Exiting.");
-            System.exit(1);
+            //System.exit(1);
         }
     }
-
-    // Search inventory by name (or by ID if preferred)
-    static Product searchInventory(String scannedItem) {
+    
+    // Search inventory by product ID
+    static Product searchInventory(int scannedId) {
         for (Product p : inventory) {
-            if (p.getName().equalsIgnoreCase(scannedItem)) {
+            if (p.getId() == scannedId) {
                 return p;
             }
-            // If your scanner writes IDs instead of names:
-            // if (String.valueOf(p.getId()).equals(scannedItem)) return p;
         }
         return null;
     }
-
+    
     static void displayCart() {
         System.out.println("\n--- Cart Contents ---");
         int index = 1;
         for (Product item : cart) {
-            System.out.printf("%d. %s - $%.2f\n", index, item.getName(), item.getPrice());
+            System.out.printf("%d. %s - $%.2f \n",
+                index, item.getName(), item.getPrice());
             index++;
         }
     }
-
+    
+    
     static void manageCart() {
         System.out.println("\nWould you like to remove an item? (yes/no)");
         String response = scanner.nextLine().trim().toLowerCase();
@@ -103,7 +126,7 @@ public class CheckoutSystem {
     }
 
     static void redeemRewards() {
-        System.out.println("\nEnter your Member ID to redeem points (or 'skip'):");
+        System.out.println("\nEnter your MemberID to redeem points (or 'skip'):");
         String memberId = scanner.nextLine().trim();
 
         if (memberId.equalsIgnoreCase("skip")) {
@@ -125,13 +148,17 @@ public class CheckoutSystem {
 
         if (apply.equals("yes")) {
             total -= discount;
-            if (total < 0) total = 0;
-
+            if (total < 0) {
+                int remain = (int) Math.abs(total);
+                total = 0;
+                rewardsMap.put(memberId, remain); // Update points
+            }
             rewardsMap.put(memberId, 0); // Reset points
 
             System.out.printf("New total after rewards: $%.2f\n", total);
 
-            // Award new points (5% of total)
+        }    
+        else{ // Award new points (5% of total)
             int newPoints = (int)(total * 0.05);
             rewardsMap.put(memberId, newPoints);
             System.out.println("You now have " + newPoints + " new points!");
@@ -146,22 +173,43 @@ public class CheckoutSystem {
         return total;
     }
 
+    public static void checkout(){
+        System.out.println("\n--- Checkout ---");
+        double total = getTotal();
+        System.out.printf("Total: $%.2f\n", total);
+        System.out.println("Please enter your payment method (cash/credit):");
+        String paymentMethod = scanner.nextLine().trim().toLowerCase();
+
+        if (paymentMethod.equals("cash")) {
+            System.out.println("Please enter the amount you are paying with:");
+            double cashAmount = scanner.nextDouble();
+            total = getTotal();
+            if (cashAmount < total) {
+                System.out.println("Insufficient cash. You owe: $" + (total - cashAmount));
+                paymentMethod = "credit"; // Switch to credit payment
+                checkout();
+            } else if (cashAmount == total) {
+                System.out.println("Exact amount received. Thank you!");
+            } else {
+                double change = cashAmount - total;
+                System.out.printf("Change: $%.2f\n", change);
+            }
+        } else if (paymentMethod.equals("credit")) {
+            System.out.println("Processing credit card payment...");
+        } else {
+            System.out.println("Invalid payment method. Try again.");
+            checkout();
+        }
+    }
+
     static void printReceipt() {
         System.out.println("\n------ Receipt ------");
         displayCart();
         double total = getTotal();
         System.out.printf("Total: $%.2f\n", total);
+        System.out.println("Payment method: " + (total == 0 ? "Cash" : "Credit"));
+        System.out.println("Rewards redeemed: " + (rewardsMap.isEmpty() ? "No" : "Yes"));
         System.out.println("---------------------");
         System.out.println("Thank you for shopping!");
-    }
-
-    static void updateRewards() throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter("GroupProject/Rewards.txt"));
-
-        for (Map.Entry<String, Integer> entry : rewardsMap.entrySet()) {
-            bw.write(entry.getKey() + "," + entry.getValue() + "\n");
-        }
-
-        bw.close();
     }
 }

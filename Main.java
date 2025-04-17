@@ -13,9 +13,9 @@ public class Main { // Main class for the project
         }
 
         // Example usage of ReadLinkedList
-        ReadLinkedList linkedList = new ReadLinkedList(); // Create ReadLinkedList object
-        linkedList.addToList("Item 1");  
-        linkedList.addToList("Item 2");
-        linkedList.readLinkedList(); 
+        //ReadLinkedList linkedList = new ReadLinkedList(); // Create ReadLinkedList object
+        //linkedList.addToList("Item 1");  
+        //linkedList.addToList("Item 2");
+        //linkedList.readLinkedList(); 
     }
 }

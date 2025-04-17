@@ -168,19 +168,7 @@ class Food extends Product {
     }
 }
 
-class ReadLinkedList {
-    private LinkedList<String> theList = new LinkedList<>();
-
-    public void addToList(String item) {
-        theList.add(item);
-    }
-
-    public void readLinkedList() {
-        while (!theList.isEmpty()) {
-            System.out.println(theList.removeFirst());
-        }
-    }
-}
+// Removed unused ReadLinkedList class
 
 class HardCode {
     // Initialize products
@@ -198,7 +186,33 @@ class HardCode {
         c.setDescription("Nike Shirt");
         c.setCategory("Clothing");
         c.setName("Nike Shirt");
-        c.setId(1);
+        c.setId(102);
+
+        Clothing c1 = new Clothing();
+        c1.setClothingType("Shirt");
+        c1.setBrand("Nike");
+        c1.setColor("Black");
+        c1.setMaterial("Cotton");
+        c1.setPrice(20.00);
+        c1.setQuantity(10);
+        c1.setSize("L");
+        c1.setDescription("Nike Shirt");
+        c1.setCategory("Clothing");
+        c1.setName("Nike Shirt");
+        c1.setId(103);
+
+        Clothing c2 = new Clothing();
+        c2.setClothingType("Shirt");
+        c2.setBrand("Nike");
+        c2.setColor("Black");
+        c2.setMaterial("Cotton");
+        c2.setPrice(20.00);
+        c2.setQuantity(10);
+        c2.setSize("S");
+        c2.setDescription("Nike Shirt");
+        c2.setCategory("Clothing");
+        c2.setName("Nike Shirt");
+        c2.setId(101);
 
         Electronics e = new Electronics();
         e.setElectronicsType("Phone");
@@ -211,7 +225,33 @@ class HardCode {
         e.setDescription("iPhone 12");
         e.setCategory("Electronics");
         e.setName("iPhone 12");
-        e.setId(2);
+        e.setId(201);
+
+        Electronics e1 = new Electronics();
+        e1.setElectronicsType("Phone");
+        e1.setBrand("Apple");
+        e1.setColor("Black");
+        e1.setMaterial("Glass");
+        e1.setPrice(1300.00);
+        e1.setQuantity(5);
+        e1.setSize("12 inch");
+        e1.setDescription("MacBook Pro");
+        e1.setCategory("Electronics");
+        e1.setName("MacBook Pro");
+        e1.setId(202);
+
+        Electronics e2 = new Electronics();
+        e2.setElectronicsType("Phone");
+        e2.setBrand("Apple");
+        e2.setColor("Black");
+        e2.setMaterial("Glass");
+        e2.setPrice(455.00);
+        e2.setQuantity(5);
+        e2.setSize("2 inch");
+        e2.setDescription("apple watch");
+        e2.setCategory("Electronics");
+        e2.setName("Apple Watch");
+        e2.setId(203);
 
         Food f = new Food();
         f.setFoodType("Fruit");
@@ -224,11 +264,44 @@ class HardCode {
         f.setDescription("Fresh Apple");
         f.setCategory("Food");
         f.setName("Red Apple");
-        f.setId(3);
+        f.setId(301);
+
+        Food f1 = new Food();
+        f1.setFoodType("Fruit");
+        f1.setBrand("Banana");
+        f1.setColor("Yellow");
+        f1.setColor("yellow");
+        f1.setMaterial("Organic");
+        f1.setPrice(1.00);
+        f1.setQuantity(100);
+        f1.setSize("Small");
+        f1.setDescription("Fresh Banana");
+        f1.setCategory("Food");
+        f1.setName("Banana");    
+        f1.setId(302);
+
+        Food f2 = new Food();
+        f2.setFoodType("Fruit");
+        f2.setBrand("Apple");
+        f2.setColor("Green");
+        f2.setMaterial("Organic");
+        f2.setPrice(1.00);
+        f2.setQuantity(100);
+        f2.setSize("Small");
+        f2.setDescription("Fresh Apple");
+        f2.setCategory("Food");
+        f2.setName("Green Apple");
+        f2.setId(303);
 
         productList.add(c);
+        productList.add(c1);
+        productList.add(c2);
         productList.add(e);
+        productList.add(e1);
+        productList.add(e2);
         productList.add(f);
+        productList.add(f1);
+        productList.add(f2);
 
         return productList;
     }
