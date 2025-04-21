@@ -30,7 +30,7 @@ public class CheckoutSystem {
 
     // Loads Rewards.txt into rewardsMap
     static void loadRewards() throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader("CSCI230/GroupProject/Rewards.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("GroupProject/Rewards.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -49,7 +49,7 @@ public class CheckoutSystem {
         inventory = HardCode.initialize();
 
         System.out.println("Loading cart...");
-        try (BufferedReader br = new BufferedReader(new FileReader("CSCI230/GroupProject/Items.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("GroupProject/Items.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();

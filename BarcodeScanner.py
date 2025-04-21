@@ -6,6 +6,7 @@ from pyzbar.pyzbar import decode, ZBarSymbol
 import random
 import subprocess
 import os
+import glob
 
 def process_frame(frame, rect_color=(0, 255, 0)): # Process the frame and detect barcodes
     detected = False # Flag to indicate if a barcode was detected
@@ -121,12 +122,12 @@ print(f"Scanning complete! {barcode_count} item(s) scanned.") # Display total it
 print("Starting checkout system...") # Display checkout system message
 
 
-# Absolute paths for the files
-items_path = "C:/Users/bhret/Downloads/Comp Sci/CSCI230/GroupProject/Items.txt"
-rewards_path = "C:/Users/bhret/Downloads/Comp Sci/CSCI230/GroupProject/Rewards.txt"
-
 # Compile the CheckoutSystem.java file
-subprocess.run(["javac", "C:/Users/bhret/Downloads/Comp Sci/CSCI230/GroupProject/CheckoutSystem.java"])
+# Folder containing all .java files and .txt files
+os.chdir("C:/Users/bhret/Downloads/Comp Sci/CSCI230")
 
-# Run the CheckoutSystem class with file arguments
-subprocess.run(["java", "-cp", "C:/Users/bhret/Downloads/Comp Sci/CSCI230", "GroupProject.CheckoutSystem", items_path, rewards_path])
+# Compile the Java files
+subprocess.run(["javac"] + glob.glob("GroupProject/*.java"))
+
+# Run the main Java class
+subprocess.run(["java", "GroupProject.CheckoutSystem"])
